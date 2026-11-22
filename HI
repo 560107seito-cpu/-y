@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スタディクエスト - Study Quest</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-light: #334155;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --primary: #3b82f6;
+    --accent: #f59e0b;
+    --success: #10b981;
+    --danger: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; }
+  body { background-color: var(--bg); color: var(--text); padding-bottom: 80px; }
+  
+  /* ログイン画面 */
+  #auth-screen {
+    position: fixed; inset: 0; background: var(--bg); z-index: 1000;
+    display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px;
+  }
+  .auth-box {
+    background: var(--card); padding: 30px; border-radius: 16px; width: 100%; max-width: 360px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center;
+  }
+  .auth-box h1 { color: var(--accent); margin-bottom: 10px; font-size: 24px; }
+  .auth-box input {
+    width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid var(--card-light);
+    background: var(--bg); color: var(--text); font-size: 16px;
+  }
+  .btn {
+    width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px;
+    cursor: pointer; margin-top: 10px; transition: 0.2s;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-accent { background: var(--accent); color: #000; }
+  .btn-success { background: var(--success); color: white; }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-sm { padding: 6px 12px; font-size: 13px; width: auto; }
+
+  /* ヘッダー */
+  header {
+    background: var(--card); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--card-light);
+  }
+  .user-badge { font-weight: bold; font-size: 14px; }
+  .coin-badge {
+    background: rgba(245, 158, 11, 0.2); color: var(--accent); border: 1px solid var(--accent);
+    padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 14px;
+  }
+
+  /* コンテナ・カード */
+  .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+  .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .card h2 { font-size: 16px; margin-bottom: 12px; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* アバター表示エリア */
+  .avatar-stage {
+    background: linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%);
+    border-radius: 12px; padding: 20px; text-align: center; position: relative; margin-bottom: 16px;
+    border: 2px solid var(--card-light);
+  }
+  .avatar-visual {
+    width: 120px; height: 150px; margin: 0 auto; position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .av-hat { font-size: 32px; z-index: 3; margin-bottom: -10px; }
+  .av-head {
+    width: 50px; height: 50px; background: #fed7aa; border-radius: 50%; z-index: 2;
+    display: flex; align-items: center; justify-content: center; font-size: 20px; color: #333;
+  }
+  .av-body {
+    width: 70px; height: 60px; border-radius: 12px 12px 4px 4px; margin-top: -5px; z-index: 1;
+    display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;
+    text-align: center; padding: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  }
+  .av-shoes { font-size: 24px; margin-top: -4px; letter-spacing: 8px; }
+  .av-acc { position: absolute; right: 10px; bottom: 20px; font-size: 28px; }
+
+  /* タイマー */
+  .subject-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+  .sub-btn {
+    background: var(--card-light); color: var(--text); border: 2px solid transparent;
+    padding: 8px 4px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; text-align: center;
+  }
+  .sub-btn.selected { border-color: var(--accent); background: rgba(245, 158, 11, 0.2); }
+  .timer-display { font-size: 48px; font-weight: bold; text-align: center; font-variant-numeric: tabular-nums; margin: 16px 0; }
+  .progress-bar-bg { background: var(--bg); height: 10px; border-radius: 5px; overflow: hidden; margin-top: 8px; }
+  .progress-bar-fill { background: var(--accent); height: 100%; width: 0%; transition: 0.3s; }
+
+  /* ショップ */
+  .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .shop-item {
+    background: var(--bg); border: 1px solid var(--card-light); border-radius: 10px; padding: 12px;
+    text-align: center; display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .brand-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; display: inline-block; margin-bottom: 4px; }
+  .brand-sup { background: #dc2626; color: white; }
+  .brand-lv { background: #78350f; color: #fcd34d; }
+  .brand-sp { background: #2563eb; color: white; }
+  .brand-fq { background: #7c3aed; color: white; }
+
+  /* フレンド対戦 */
+  .vs-row { margin-bottom: 12px; }
+  .vs-header { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
+  .vs-bar { height: 12px; background: var(--bg); border-radius: 6px; overflow: hidden; display: flex; }
+
+  /* テスト */
+  .countdown-banner {
+    background: linear-gradient(135deg, #dc2626, #991b1b); padding: 14px; border-radius: 10px;
+    text-align: center; margin-bottom: 12px;
+  }
+  .countdown-days { font-size: 28px; font-weight: bold; color: #fef08a; }
+  .score-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--card-light); font-size: 14px; }
+
+  /* AIチャット */
+  .chat-box { height: 260px; overflow-y: auto; background: var(--bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+  .msg { margin-bottom: 10px; padding: 8px 12px; border-radius: 8px; font-size: 14px; max-width: 85%; line-height: 1.4; }
+  .msg-ai { background: var(--card-light); color: var(--text); align-self: flex-start; }
+  .msg-user { background: var(--primary); color: white; margin-left: auto; }
+
+  /* ボトムナビゲーション */
+  nav {
+    position: fixed; bottom: 0; left: 0; right: 0; background: var(--card);
+    display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid var(--card-light); z-index: 100;
+  }
+  .nav-item {
+    background: none; border: none; color: var(--text-muted); font-size: 11px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer;
+  }
+  .nav-item.active { color: var(--accent); font-weight: bold; }
+  .nav-icon { font-size: 20px; }
+</style>
+</head>
+<body>
+
+<!-- ログイン・新規登録画面 -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <h1>⚔️ スタディクエスト</h1>
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">勉強してコインを稼ぎ、最強のアバターを作ろう！</p>
+    <input type="text" id="auth-user" placeholder="ユーザーID（ニックネーム）">
+    <input type="password" id="auth-pass" placeholder="パスワード">
+    <button class="btn btn-primary" onclick="handleLogin()">ログイン / 新規登録</button>
+    <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">※初めて入力するIDは自動で新規作成されます</p>
+  </div>
+</div>
+
+<!-- ヘッダー -->
+<header>
+  <div class="user-badge">👤 <span id="disp-username">ゲスト</span></div>
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <div class="coin-badge">🪙 <span id="disp-coins">0</span></div>
+    <button class="btn btn-sm" style="background: var(--card-light); color: white; margin:0;" onclick="logout()">ログアウト</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- 1. ホーム＆タイマー画面 -->
+  <div id="tab-study" class="tab-content active">
+    <!-- アバター＆テストカウントダウン -->
+    <div class="avatar-stage">
+      <div id="home-countdown" style="font-size: 13px; color: #fde047; font-weight: bold; margin-bottom: 8px;"></div>
+      <div class="avatar-visual">
+        <div class="av-hat" id="av-hat">🧢</div>
+        <div class="av-head">😎</div>
+        <div class="av-body" id="av-body" style="background: #475569;">初期Tシャツ</div>
+        <div class="av-shoes" id="av-shoes">👟</div>
+        <div class="av-acc" id="av-acc"></div>
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">総勉強時間: <strong id="disp-total-time" style="color: white;">0時間 0分</strong></div>
+    </div>
+
+    <!-- 勉強タイマー -->
+    <div class="card">
+      <h2>⏱️ クエスト開始（教科を選択）</h2>
+      <div class="subject-grid" id="subject-selector"></div>
+      <div class="timer-display" id="timer-text">00:00:00</div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-success" id="btn-start" onclick="toggleTimer()">▶ スタート</button>
+        <button class="btn btn-primary" onclick="saveStudySession()">💾 記録して終了</button>
+      </div>
+      <button class="btn btn-sm" style="background: #475569; color: #cbd5e1; width: 100%; margin-top: 10px;" onclick="debugAddHour()">⚡ [テスト用] +1時間勉強したことにして100コイン獲得</button>
+      
+      <div style="margin-top: 16px;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+          <span>次の100コイン獲得まで</span>
+          <span id="coin-progress-text">あと 60 分</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="coin-progress-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 教科別累計 -->
+    <div class="card">
+      <h2>📊 教科別ステータス</h2>
+      <div id="subject-stats"></div>
+    </div>
+  </div>
+
+  <!-- 2. 着せ替えショップ画面 -->
+  <div id="tab-shop" class="tab-content">
+    <div class="card">
+      <h2>🛍️ ブランド＆アイテムショップ</h2>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">1時間勉強するごとに100コインGET！限定アイテムで着せ替えよう。</p>
+      <div class="shop-grid" id="shop-list"></div>
+    </div>
+  </div>
+
+  <!-- 3. フレンド対戦画面 -->
+  <div id="tab-friend" class="tab-content">
