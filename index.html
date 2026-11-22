@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -212,3 +212,66 @@
   <div id="tab-shop" class="tab-content">
     <div class="card">
       <h2>🛍️ ブランド＆アイテムショップ</h2>
+<div id="t-vs" class="tab"><div class="card">
+    <h2>⚔️ フレンド勉強バトル</h2>
+    <div style="display:flex;gap:6px;margin-bottom:10px"><input id="f-in" placeholder="フレンド名" style="margin:0"><button class="btn pri sm" style="margin:0" onclick="addF()">追加</button></div>
+    <div id="f-list"></div>
+  </div></div>
+
+  <div id="t-test" class="tab">
+    <div class="card"><h2>📅 テストカウントダウン</h2><div id="t-cd"></div>
+      <input id="tn-in" placeholder="テスト名（例：期末テスト）"><input type="date" id="td-in">
+      <button class="btn acc" onclick="setTest()">日程セット</button>
+    </div>
+    <div class="card"><h2>📝 テスト点数記録</h2>
+      <div style="display:flex;gap:6px"><select id="sc-sub"></select><input type="number" id="sc-val" placeholder="点数"></div>
+      <button class="btn pri" onclick="addSc()">記録</button><div id="sc-list" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <div id="t-ai" class="tab"><div class="card">
+    <h2>🤖 AI勉強質問</h2><select id="ai-sub"></select>
+    <div class="chat" id="chat"><div class="msg ai">わからない問題を質問してね！</div></div>
+    <div style="display:flex;gap:6px"><input id="ai-in" placeholder="質問を入力" style="margin:0"><button class="btn pri sm" style="margin:0" onclick="askAi()">送信</button></div>
+  </div></div>
+</div>
+
+<nav>
+  <button class="nav on" onclick="tab('study',this)">⏱️<br>勉強</button>
+  <button class="nav" onclick="tab('shop',this)">👕<br>着せ替え</button>
+  <button class="nav" onclick="tab('vs',this)">⚔️<br>対戦</button>
+  <button class="nav" onclick="tab('test',this)">📝<br>テスト</button>
+  <button class="nav" onclick="tab('ai',this)">🤖<br>AI質問</button>
+</nav>
+
+<script>
+const SUBS=['国語','数学','社会','理科','英語','技術','家庭科','保健体育'];
+const ITEMS=[
+  {id:'sup',t:'body',b:'Supreme風',c:'#dc2626',tc:'#fff',n:'赤BOXパーカー',p:100,l:'Supreme'},
+  {id:'lv',t:'body',b:'Vuitton風',c:'#451a03',tc:'#fcd34d',n:'モノグラム服',p:300,l:'LV ✦ ✦'},
+  {id:'gc',t:'body',b:'Gucci風',c:'#064e3b',tc:'#fca5a5',n:'ラインニット',p:250,l:'GUCCI'},
+  {id:'bag',t:'acc',b:'Vuitton風',c:'#78350f',tc:'#fcd34d',n:'高級ボストン',p:200,i:'👜'},
+  {id:'cap',t:'hat',b:'Supreme風',c:'#dc2626',tc:'#fff',n:'限定キャップ',p:100,i:'🧢'},
+  {id:'crw',t:'hat',b:'限定レア',c:'#d97706',tc:'#fff',n:'勉強王の王冠',p:500,i:'👑'},
+  {id:'nk',t:'shoes',b:'Nike風',c:'#2563eb',tc:'#fff',n:'限定スニーカー',p:150,i:'👟👟'},
+  {id:'pc',t:'acc',b:'特別装備',c:'#334155',tc:'#fff',n:'最強ノートPC',p:200,i:'💻'}
+];
+let cur=null,db=null,sel='数学',tm=null,sec=0;
+
+window.onload=()=>{
+  document.getElementById('subs').innerHTML=SUBS.map(s=>`<button class="sub ${s===sel?'sel':''}" onclick="selSub('${s}',this)">${s}</button>`).join('');
+  const op=SUBS.map(s=>`<option>${s}</option>`).join('');
+  document.getElementById('sc-sub').innerHTML=op;document.getElementById('ai-sub').innerHTML=op;
+  const u=localStorage.getItem('sq_u');if(u)load(u);
+};
+function selSub(s,e){sel=s;document.querySelectorAll('.sub').forEach(b=>b.classList.remove('sel'));e.classList.add('sel')}
+function login(){
+  const id=document.getElementById('uid').value.trim(),pw=document.getElementById('upw').value.trim();
+  if(!id||!pw)return alert('IDとパスワードを入力してください');
+  const all=JSON.parse(localStorage.getItem('sq_all')||'{}');
+  if(all[id]){if(all[id].pw!==pw)return alert('パスワードが違います')}
+  else{all[id]={pw,coin:100,min:0,cmin:0,smin:{},own:[],eq:{hat:'🧢',body:'',shoes:'👟',acc:''},fr:[{n:'ライバル佐藤',m:180},{n:'天才鈴木',m:420}],test:null,sc:[]};localStorage.setItem('sq_all',JSON.stringify(all));alert('新規登録完了！初回100コイン獲得！')}
+  localStorage.setItem('sq_u',id);load(id);
+}
+function load(id){const all=JSON.parse(localStorage.getItem('sq_all')||'{}');if(!all[id])return;cur=id;db=all[id];document.getElementById('auth').style.display='none';render()}
+function save(){const all=JSON.parse(localStorage.getItem('sq_all')||'{}');all[cur]=db;localStorage.setItem('sq_all',JSON.stringify(all));render()}
