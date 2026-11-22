@@ -219,3 +219,45 @@
 
   <!-- 3. フレンド対戦画面 -->
   <div id="tab-friend" class="tab-content">
+<script>
+// 「ログイン / 新規登録」ボタンが押されたときの処理
+function handleLogin() {
+  const userId = document.getElementById('userIdInput').value.trim();
+  const password = document.getElementById('passwordInput').value.trim();
+
+  if (!userId || !password) {
+    alert('ユーザーIDとパスワードを入力してください');
+    return;
+  }
+
+  // ブラウザから保存済みのユーザー一覧を取得
+  const users = JSON.parse(localStorage.getItem('studyQuestUsers') || '{}');
+
+  if (users[userId]) {
+    // すでに登録されているIDの場合：パスワード確認
+    if (users[userId].password === password) {
+      loginSuccess(userId);
+    } else {
+      alert('パスワードが間違っています');
+    }
+  } else {
+    // 初めてのIDの場合：自動新規登録してログイン
+    users[userId] = {
+      password: password,
+      coins: 0,
+      avatar: 'default'
+    };
+    localStorage.setItem('studyQuestUsers', JSON.stringify(users));
+    alert('新規登録が完了しました！');
+    loginSuccess(userId);
+  }
+}
+
+// ログイン成功後の画面切り替え処理
+function loginSuccess(userId) {
+  localStorage.setItem('currentUser', userId);
+  // ログイン画面を隠してメイン画面を表示する（ID名は実際のHTMLに合わせて変更してください）
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-screen').style.display = 'block';
+}
+</script>
